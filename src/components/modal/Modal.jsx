@@ -2,9 +2,9 @@ import { StyledOverlay, StyledModal } from './Modal.styled';
 
 export const Modal = ({ close, content }) => {
   return (
-    <StyledOverlay>
+    <StyledOverlay onClick={close}>
       <StyledModal>
-        <image key={content.id} src={content.largeImageURL} alt="Image" />
+        <img key={content.id} src={content.largeImageURL} alt={content.tags} />
       </StyledModal>
     </StyledOverlay>
   );

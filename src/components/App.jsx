@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { ImageGallery } from './imageGallery/ImageGallery';
 import { Button } from './button/Button';
 import { Modal } from './modal/Modal';
+import { Dna } from 'react-loader-spinner';
 
 export default class App extends React.Component {
   state = {
@@ -17,19 +18,37 @@ export default class App extends React.Component {
     page: 1,
     isOpen: false,
     content: null,
+    total: '',
   };
 
   async componentDidUpdate(prevProps, prevState) {
     const { per_page, page, q } = this.state;
+
     if (prevState.page !== page || prevState.q !== q) {
+      this.setState({ loading: true });
+
       try {
         const data = await fetchImages({ per_page, page, q });
-        this.setState(prev => ({ images: [...prev.images, ...data.hits] }));
+        this.setState(prev => ({
+          images: [...prev.images, ...data.hits],
+          total: data.totalHits,
+        }));
       } catch (error) {
-        this.setState({ error: error.message });
-        toast.error(error.message);
+        this.setState({ error: error.message }, () =>
+          toast.error(error.message)
+        );
+      } finally {
+        this.setState({ loading: false });
       }
     }
+
+    document.addEventListener('keydown', this.handleKeyDown);
+    document.body.style.overlay = 'hidden';
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('keydown', this.handleKeyDown);
+    document.body.style.overlay = 'visible';
   }
 
   handleSetQuerry = q => {
@@ -41,18 +60,55 @@ export default class App extends React.Component {
   };
 
   toggleModal = content => {
-    this.setState(prev => ({ isOpen: !prev.isOpen, content }));
+    this.setState(prev => ({
+      isOpen: !prev.isOpen,
+      isOverlayVisible: !prev.isOverlayVisible,
+      content,
+    }));
+  };
+
+  handleClickModal = ({ target, currentTarget }) => {
+    if (target === currentTarget) {
+      this.toggleModal();
+    }
+  };
+
+  handleKeyDown = e => {
+    if (e.key === 'Escape') {
+      this.toggleModal();
+      toast.info('Modal closed by Escape');
+    }
   };
 
   render() {
-    const { images, isOpen, content } = this.state;
+    const { images, isOpen, content, total, loading } = this.state;
 
     return (
       <StyledWrap>
         <Searchbar setQuerry={this.handleSetQuerry} />
-        <ImageGallery images={images} toggleModal={this.toggleModal} />
-        <Button onClick={this.handleLoadMore} />
-        {isOpen ? <Modal content={content} close={this.toggleModal} /> : null}
+        {loading && !images.length ? (
+          <Dna
+            visible={true}
+            height="80"
+            width="80"
+            ariaLabel="dna-loading"
+            wrapperStyle={{}}
+            wrapperClass="dna-wrapper"
+          />
+        ) : (
+          <ImageGallery images={images} toggleModal={this.toggleModal} />
+        )}
+
+        {total > images.length ? (
+          <Button onClick={this.handleLoadMore} />
+        ) : null}
+        {isOpen ? (
+          <Modal
+            onClick={this.toggleModal}
+            content={content}
+            close={this.handleClickModal}
+          />
+        ) : null}
       </StyledWrap>
     );
   }
