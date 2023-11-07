@@ -41,14 +41,6 @@ export default class App extends React.Component {
         this.setState({ loading: false });
       }
     }
-
-    document.addEventListener('keydown', this.handleKeyDown);
-    document.body.style.overlay = 'hidden';
-  }
-
-  componentWillUnmount() {
-    document.removeEventListener('keydown', this.handleKeyDown);
-    document.body.style.overlay = 'visible';
   }
 
   handleSetQuerry = q => {
@@ -62,22 +54,8 @@ export default class App extends React.Component {
   toggleModal = content => {
     this.setState(prev => ({
       isOpen: !prev.isOpen,
-      isOverlayVisible: !prev.isOverlayVisible,
       content,
     }));
-  };
-
-  handleClickModal = ({ target, currentTarget }) => {
-    if (target === currentTarget) {
-      this.toggleModal();
-    }
-  };
-
-  handleKeyDown = e => {
-    if (e.key === 'Escape') {
-      this.toggleModal();
-      toast.info('Modal closed by Escape');
-    }
   };
 
   render() {
@@ -102,13 +80,7 @@ export default class App extends React.Component {
         {total > images.length ? (
           <Button onClick={this.handleLoadMore} />
         ) : null}
-        {isOpen ? (
-          <Modal
-            onClick={this.toggleModal}
-            content={content}
-            close={this.handleClickModal}
-          />
-        ) : null}
+        {isOpen ? <Modal close={this.toggleModal} content={content} /> : null}
       </StyledWrap>
     );
   }

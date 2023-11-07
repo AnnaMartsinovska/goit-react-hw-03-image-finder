@@ -6,8 +6,13 @@ import {
   StyledButtonLabel,
   StyledInput,
 } from './Searchbar.styled';
+import propTypes from 'prop-types';
 
 export class Searchbar extends React.Component {
+  static = {
+    setQuerry: propTypes.func.isRequired,
+  };
+
   state = {
     searchStr: '',
   };
